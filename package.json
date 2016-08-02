@@ -3,39 +3,59 @@
   "version": "0.1.0",
   "config": {
     "dest_dir": "dest",
-    "browserify_config": "-t aliasify -t hbsfy -t envify --debug"
+    "browserify_config": "-t aliasify -t hbsfy -t envify --verbose --debug"
   },
   "scripts": {
     "start": "node server.js",
     "start-message": "printf \"\n[\\033[1;34m%s\\033[0m] Started:   \\033[1;33m$(date +%T)\\033[0m\n\n\"",
     "stop-message": "printf \"\n[\\033[1;34m%s\\033[0m] Completed: \\033[1;33m$(date +%T)\\033[0m\n\n\"",
+
     "preclean": "npm run start-message clean",
     "clean": "rimraf $npm_package_config_dest_dir/*",
     "postclean": "npm run stop-message clean",
-    "prelint": "npm run start-message lint",
-    "lint": "eslint --cache",
-    "lint:js": "npm run lint -s -- 'app/**/*.js' 'server/**/*.js'",
-    "postlint": "npm run stop-message lint",
-    "prebuild": "npm run start-message build && run-p clean lint:js -s",
-    "build": "run-p build:* -s",
+
+    "prelint:js": "npm run start-message lint",
+    "lint:js": "eslint --cache",
+    "postlint:js": "npm run stop-message lint",
+
+    "lint:js:all": "npm run lint:js -s -- 'app/**/*.js' 'server/**/*.js'",
+
+    "prelint:scss": "npm run start-message scss-lint",
+    "lint:scss": "sass-lint --verbose",
+    "postlint:scss": "npm run stop-message scss-lint",
+
+    "lint:scss:all": "npm run lint:scss -s -- 'app/**/*.scss'",
+
+    "prebuild": "npm run start-message -s -- build",
+    "build": "run-p build:** -s",
+
+    "prebuild:scripts": "npm run lint:js:all -s",
     "build:scripts": "browserify app/main.js -o $npm_package_config_dest_dir/app.js $npm_package_config_browserify_config",
+
+    "prebuild:styles": "npm run lint:scss:all",
     "build:styles": "node-sass app/app.scss -o $npm_package_config_dest_dir/",
+
     "build:markup": "cp app/index.html $npm_package_config_dest_dir/index.html",
-    "postbuild": "run-p doc test -s && npm run stop-message build",
+    "postbuild": "run-p doc test -s && npm run stop-message -s -- build",
+
     "predoc": "npm run start-message doc",
     "doc": "mkdir $npm_package_config_dest_dir/site -p && yuidoc",
     "postdoc": "npm run stop-message doc",
+
     "pretest": "npm run start-message test",
     "test": "karma start",
     "posttest": "npm run stop-message test",
+
     "watch": "npm run build -s && run-p -r watch:** -s",
     "watch:test": "karma start karma.conf.dev.js",
     "watch:server-and-browsersync": "rimraf bs.started; nodemon server/server.js",
     "watch:scripts": "watchify app/main.js -o $npm_package_config_dest_dir/app.js $npm_package_config_browserify_config",
-    "watch:styles": "npm run build:styles -- -w app",
+    "watch:styles": "npm run build:styles -- --watch app",
     "watch:markup": "onchange 'app/index.html' -w -- npm run build:markup -s",
     "watch:doc": "npm run doc -- --server 5000",
-    "watch:lint": "onchange 'app/**/*.js' 'server/**/*.js' -w -- npm run lint -s -- {{changed}} || true",
+    "watch:lint:js": "onchange 'app/**/*.js' 'server/**/*.js' -w -- npm run lint:js -s -- {{changed}} || true",
+    "watch:lint:scss": "onchange 'app/**/*.scss' -w -- npm run lint:scss -s -- {{changed}} --no-exit",
+
     "dev": "npm run watch -s"
   },
   "devDependencies": {
@@ -56,6 +76,7 @@
     "node-sass": "3.8.0",
     "npm-run-all": "2.3.0",
     "onchange": "2.5.0",
+    "sass-lint": "^1.8.2",
     "watchify": "2.6.2",
     "yuidocjs": "0.10.2"
   },
