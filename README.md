@@ -1,7 +1,7 @@
 # no-gulp-example
 
 Basic project with some random app and server code that showcases a full build process with NO gulp/grunt/etc.  Insteal the direct CLI is used for each build process:
-* Linting - (js and soon to have scss linting)
+* Linting - (js and scss)
 * Browserified Browser code.
 * Sass compiled css
 * karma run jasmine tests
